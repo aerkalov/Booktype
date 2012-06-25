@@ -1,0 +1,7 @@
+
+.mercury-primary-toolbar .mercury-tocPanel-button em,
+.mercury-expander-button[data-button="inspector"] em {
+  background-image: url(/site_static/mercury/glyphicons_071_book.png);
+  background-position: 20px 12px;
+}
+

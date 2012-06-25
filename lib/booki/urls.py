@@ -40,6 +40,9 @@ else:
     from booki.portal import feeds
 
     urlpatterns = patterns('',
+
+                           url(r'^mercury/panels/toc\.html$', 'booki.editor.views.panel_toc', name='panel_toc'),
+
                            # administration
                            # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
                            url(r'^admin/', include(admin.site.urls)),

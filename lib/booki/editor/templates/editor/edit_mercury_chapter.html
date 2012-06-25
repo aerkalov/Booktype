@@ -1,0 +1,60 @@
+{% load i18n messaging_tags %}
+<!DOCTYPE HTML>
+<html>
+ <head>
+
+{% load i18n %}
+
+<script>
+  window.currentBook    = "{{book.title|escapejs}}";
+  window.currentBookURL = "{{book.url_title|escapejs}}";
+  window.currentBookID  = {{book.id}};
+
+</script>
+
+<link type="text/css" href="{{ request.META.SCRIPT_NAME }}/site_static/css/editor.css" rel="Stylesheet" />
+
+<script src="{{ request.META.SCRIPT_NAME }}/site_static/mercury/javascripts/mercury_loader.js" type="text/javascript"></script>
+
+
+<style>
+
+.ui-button .ui-button-text { display: block; line-height: 0.6;  }
+
+.ui-button-text-only .ui-button-text { padding: 0.05em 0.05em; }
+ BODY {
+   margin: 20px;
+   background-color: #f0f0f0;
+
+   font:normal normal 100%/1.0 tahoma;
+ }
+
+ #primary {
+   background-color: white;
+   padding: 20px;
+ }
+
+
+
+
+/*
+.mercury-button-panel .mercury-tocPanel-button {
+  background: url(/site_static/mercury/glyphicons_071_book.png) no-repeat 0 0;
+}
+.mercury-button-panel .mercury-tocPanel-button.active {
+  background-position: 0 -18px;  
+}
+*/
+
+</style>
+
+</head>
+
+<body>
+
+<div data-mercury="full" id="primary">
+ {{ chapter.content|safe }}
+</div> 
+
+</body>
+</html>

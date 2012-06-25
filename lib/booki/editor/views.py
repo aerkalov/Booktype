@@ -86,6 +86,138 @@ def export(request, bookid):
     return response
 
 @login_required
+def edit_mercury(request, bookid, version=None):
+    from booki.utils import security
+
+    try:
+        book = models.Book.objects.get(url_title__iexact=bookid)
+    except models.Book.DoesNotExist:
+        return pages.ErrorPage(request, "errors/book_does_not_exist.html", {"book_name": bookid})
+
+    book_version = book.getVersion(version)
+
+    bookSecurity = security.getUserSecurityForBook(request.user, book)
+
+    hasPermission = security.canEditBook(book, bookSecurity)
+
+    if not hasPermission:
+        return pages.ErrorPage(request, "errors/editing_forbidden.html", {"book": book})    
+
+    chapters = models.Chapter.objects.filter(version=book_version)
+
+    tabs = ["chapters"]
+
+    if True: # bookSecurity.isAdmin():
+        tabs += ["attachments"]
+
+    tabs += ["history", "versions", "notes"]
+
+    if bookSecurity.isAdmin():
+        tabs += ["settings"]
+
+    tabs += ["export"]
+
+    isBrowserSupported = True
+    browserMeta = request.META.get('HTTP_USER_AGENT', '')
+
+    if browserMeta.find('MSIE') != -1:
+        isBrowserSupported = False
+
+    try:
+        publish_options = settings.PUBLISH_OPTIONS
+    except AttributeError:
+        from booki import constants
+        publish_options = constants.PUBLISH_OPTIONS
+        
+    return render_to_response('editor/edit_mercury.html', {"book": book, 
+                                                        "book_version": book_version.getVersion(),
+                                                        "version": book_version,
+
+                                                        ## this change will break older versions of template
+                                                        "statuses": [(s.name.replace(' ', '_'), s.name) for s in models.BookStatus.objects.filter(book = book)],
+                                                        "chapters": chapters, 
+                                                        "security": bookSecurity,
+                                                        "is_admin": bookSecurity.isGroupAdmin() or bookSecurity.isBookAdmin() or bookSecurity.isSuperuser(),
+                                                        "is_owner": book.owner == request.user,
+                                                        "tabs": tabs,
+                                                        "is_browser_supported": isBrowserSupported,
+                                                        "publish_options": publish_options,
+                                                        "request": request})
+
+from django.views.decorators.cache import cache_control
+
+@login_required
+@cache_control(must_revalidate=True, max_age=2)
+def panel_toc(request):
+    v = models.Book.objects.get(id=request.GET['book_id']).getVersion()
+    chapters = models.Chapter.objects.filter(version=v)
+    return render_to_response('editor/panel_toc.html', {'chapters': chapters})
+
+
+@login_required
+def edit_mercury_chapter(request, bookid, chapter, version=None):
+    from booki.utils import security
+
+    try:
+        book = models.Book.objects.get(url_title__iexact=bookid)
+    except models.Book.DoesNotExist:
+        return pages.ErrorPage(request, "errors/book_does_not_exist.html", {"book_name": bookid})
+
+    book_version = book.getVersion(version)
+
+    bookSecurity = security.getUserSecurityForBook(request.user, book)
+
+    hasPermission = security.canEditBook(book, bookSecurity)
+
+    if not hasPermission:
+        return pages.ErrorPage(request, "errors/editing_forbidden.html", {"book": book})    
+
+    chapters = models.Chapter.objects.filter(version=book_version)
+
+    chapter = list(models.Chapter.objects.filter(version=book_version, url_title=chapter))[0]
+
+    tabs = ["chapters"]
+
+    if True: # bookSecurity.isAdmin():
+        tabs += ["attachments"]
+
+    tabs += ["history", "versions", "notes"]
+
+    if bookSecurity.isAdmin():
+        tabs += ["settings"]
+
+    tabs += ["export"]
+
+    isBrowserSupported = True
+    browserMeta = request.META.get('HTTP_USER_AGENT', '')
+
+    if browserMeta.find('MSIE') != -1:
+        isBrowserSupported = False
+
+    try:
+        publish_options = settings.PUBLISH_OPTIONS
+    except AttributeError:
+        from booki import constants
+        publish_options = constants.PUBLISH_OPTIONS
+        
+    return render_to_response('editor/edit_mercury_chapter.html', {"book": book, 
+                                                                   "book_version": book_version.getVersion(),
+                                                                   "version": book_version,
+                                                                   "chapter": chapter,
+                                                                   
+                                                                   ## this change will break older versions of template
+                                                                   "statuses": [(s.name.replace(' ', '_'), s.name) for s in models.BookStatus.objects.filter(book = book)],
+                                                                   "chapters": chapters, 
+                                                                   "security": bookSecurity,
+                                                                   "is_admin": bookSecurity.isGroupAdmin() or bookSecurity.isBookAdmin() or bookSecurity.isSuperuser(),
+                                                                   "is_owner": book.owner == request.user,
+                                                                   "tabs": tabs,
+                                                                   "is_browser_supported": isBrowserSupported,
+                                                                   "publish_options": publish_options,
+                                                                   "request": request})
+
+
+@login_required
 def edit_book(request, bookid, version=None):
     """
     Django View. Default page for Booki editor.

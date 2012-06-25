@@ -1,0 +1,30 @@
+{% extends "base_edit.html" %}
+{% load i18n %}
+
+{% block header %}
+<link type="text/css" href="{{ request.META.SCRIPT_NAME }}/site_static/css/editor.css" rel="Stylesheet" />
+
+
+<style>
+
+.ui-button .ui-button-text { display: block; line-height: 0.6;  }
+
+.ui-button-text-only .ui-button-text { padding: 0.05em 0.05em; }
+
+
+</style>
+{% endblock %}
+
+{% block sidebar %} 
+{% endblock %}
+
+{% block content %}
+ <ul>
+  {% for chap in chapters %}
+   <li><a href="{% url edit_mercury_chapter book.url_title chap.url_title %}"> {{ chap.title }} </a></li>
+
+  {% endfor %}
+ </ul>
+
+
+{% endblock %} 
