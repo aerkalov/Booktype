@@ -32,8 +32,8 @@ urlpatterns = patterns('',
     # mercury editor
     url(r'^_mercury/$', 'booki.editor.views.edit_mercury', name='edit_mercury'),
     url(r'^_mercury/(?P<chapter>[\w\s\_\.\-]+)/$', 'booki.editor.views.edit_mercury_chapter', name='edit_mercury_chapter'),
+    url(r'^_mercury/(?P<chapter>[\w\s\_\.\-]+)/static/(?P<attachment>.*)$', 'booki.reader.views.staticattachment'),
                      
-
     # edit book 
     url(r'^_edit/$', 'booki.editor.views.edit_book', name='edit_book'),
     url(r'^_edit/static/(?P<attachment>.*)$', 'booki.reader.views.staticattachment'),
