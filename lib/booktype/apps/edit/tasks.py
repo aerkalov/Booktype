@@ -2,16 +2,24 @@ import json
 import celery
 import urllib2
 import httplib
+import time
+
+from django.conf import settings
 
 import sputnik
 
 from booki.editor import models
 
-def fetch_url(url, data):
-    try:
-        data_json = json.dumps(data)
-    except TypeError:
-        return None
+def fetch_url(url, data, method='GET'):
+    if method.lower() == 'get':
+        url = url + '?' + urllib.urlencode(data)
+
+        req = urllib2.Request(url)
+    else:
+        try:
+            data_json = json.dumps(data)
+        except TypeError:
+            return None
 
     req = urllib2.Request(url, data_json)
 
@@ -41,47 +49,109 @@ def publish_book(*args, **kwargs):
     import json
     import logging
 
+    # Entire publisher is at the moment hard coded for pdf output
+
     # set logger
     logger = logging.getLogger('booktype')
     logger.debug(kwargs)
 
     book = models.Book.objects.get(id=kwargs['bookid'])
+
+    book_url = "%s/%s/_export/" % (settings.BOOKTYPE_URL, book.url_title)
+
     data = {
         "assets" : {
-            "testbook.epub" : "http://127.0.0.1:8000/%s/_export/" % book.url_title
+            "testbook.epub" : book_url
         },
         "input" : "testbook.epub",
         "outputs": {
-            "two" : {
-                "profile" : "epub",
+            "pdf" : {
+                "profile" : "mpdf",
                 "config": {
                     'project_id':  book.url_title
                 },
-                "output" : "testbook.epub"
+                "output" : "testbook.pdf"
             }
         }
     }
+
     logger.debug(data)
 
-    result = fetch_url('http://127.0.0.1:8000/_convert/', data)
-    logger.debug(result)
+    result = fetch_url('{}/_convert/'.format(settings.BOOKTYPE_URL), data, method='POST')
 
-    task_id = result['task_id']
-    while True:
-        logger.debug('http://127.0.0.1:8000/_convert/%s' % task_id)
-        response = urllib2.urlopen('http://127.0.0.1:8000/_convert/%s' % task_id).read()
-        dta = json.loads(response)
-        logger.debug(dta)
-
+    if not result:
         sputnik.addMessageToChannel2(
             kwargs['clientid'],
             kwargs['sputnikid'],
-            "/booktype/book/%s/%s/" % (book.pk, kwargs['version']), {
-                "command": "publish_progress",
-                "state": dta['state']
+            "/booktype/book/%s/%s/" % (book.pk, kwargs['version']),
+            {
+                "command": "book_published",
+                "state": 'FAILURE'
             },
             myself=True
         )
+        return
 
-        if dta['state'] in ['SUCCESS', 'FAILURE']:
+    task_id = result['task_id']    
+    start_time = time.time()
+
+    while True:
+        if time.time() - start_time > 45:
+            sputnik.addMessageToChannel2(
+                kwargs['clientid'],
+                kwargs['sputnikid'],
+                "/booktype/book/%s/%s/" % (book.pk, kwargs['version']),
+                {
+                    "command": "book_published",
+                    "state": 'FAILURE'
+                },
+                myself=True
+            )
             break
+
+        try:
+            response = urllib2.urlopen('{}/_convert/{}'.format(settings.BOOKTYPE_URL, task_id)).read()
+        except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException):
+            logger.error(
+                'Could not communicate with a server to fetch polling data.')
+        except Exception:
+            logger.error(
+                'Could not communicate with a server to fetch polling data.')
+
+        try:
+            dta = json.loads(response)
+        except TypeError:
+            dta = {'state': ''}
+            logger.error('Could not parse JSON string.')
+
+        if dta['state'] == 'SUCCESS':            
+            url = dta['result']['pdf']['result']['output']
+
+            sputnik.addMessageToChannel2(
+                kwargs['clientid'],
+                kwargs['sputnikid'],
+                "/booktype/book/%s/%s/" % (book.pk, kwargs['version']), {
+                    "command": "book_published",
+                    "state": dta['state'],
+                    "url": url
+                },
+                myself=True
+            )
+            break
+
+        if dta['state'] == 'FAILURE':
+            sputnik.addMessageToChannel2(
+                kwargs['clientid'],
+                kwargs['sputnikid'],
+                "/booktype/book/%s/%s/" % (book.pk, kwargs['version']),
+                {
+                    "command": "book_published",
+                    "state": 'FAILURE'
+                },
+                myself=True
+            )
+            break
+
+        time.sleep(0.5)
+
+

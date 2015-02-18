@@ -2,11 +2,52 @@
 
 
 <div class="template templatePublishHeader">
- <h2>Publish</h2>
+ <h2>{% trans "Publish" %}</h2>
 </div>
-<div class="template templatePublishContent">
-    <p>Publish your book.</p>
 
-  	<button type="button" class="btn btn-publish">{% trans "PUBLISH" %}</button>
+<div class="template templatePublishContent">
+
+ <div class="container">
+  <div class="row-xs-12">
+    <h4 class="border-bottom">{% trans "Formats" %}</h4>
+      <form>
+        <div class="checkbox">
+          <label>
+            <input name="bookpdf" type="checkbox"> {% trans "Book PDF" %}
+          </label><br/>
+          <a href="#">{% trans "settings" %}</a>
+        </div>
+
+        <div class="checkbox">
+          <label>
+            <input name="screenpdf" type="checkbox"> {% trans "Screen PDF" %}
+          </label><br/>
+          <a href="#">{% trans "settings" %}</a>
+        </div>
+
+        <div class="checkbox">
+          <label>
+            <input name="epub" type="checkbox"> {% trans "EPUB" %}
+          </label><br/>
+          <a href="#">{% trans "settings" %}</a>
+        </div>
+
+        <div class="checkbox">
+          <label>
+            <input name="mobi" type="checkbox"> {% trans "MOBI" %}
+          </label><br/>
+          <a href="#">{% trans "settings" %}</a>
+        </div>
+
+        <button type="button" class="btn btn-default btn-publish">{% trans "PUBLISH" %}</button>
+      </form>
+    </div>
+
+    <div class="row-xs-12">
+     <h4 class="border-bottom">{% trans "Publishing history" %}</h4>
+       <div class="publish_history">
+       </div>
+    </div>
+ </div>
 
 </div>
