@@ -3,6 +3,7 @@ import celery
 import urllib2
 import httplib
 import time
+import datetime
 
 from django.conf import settings
 
@@ -61,21 +62,28 @@ def publish_book(*args, **kwargs):
 
     data = {
         "assets" : {
-            "testbook.epub" : book_url
+            "input.epub" : book_url
         },
-        "input" : "testbook.epub",
-        "outputs": {
-            "pdf" : {
-                "profile" : "mpdf",
-                "config": {
-                    'project_id':  book.url_title
-                },
-                "output" : "testbook.pdf"
-            }
-        }
+        "input" : "input.epub",
+        "outputs": {}
     }
 
+    for _format in kwargs['formats']:
+        _ext = "pdf"
+        if _format == "epub":
+            _ext = "epub"
+
+        data["outputs"][_format] = {"profile": _format,
+            "config": {
+                "project_id": book.url_title
+                },
+            "output": "{}.{}".format(book.url_title, _ext)
+            }
+
     logger.debug(data)
+
+    output_results = {}
+    #_format: False for _format in data["outputs"].iterkeys()}
 
     result = fetch_url('{}/_convert/'.format(settings.BOOKTYPE_URL), data, method='POST')
 
@@ -124,20 +132,40 @@ def publish_book(*args, **kwargs):
             dta = {'state': ''}
             logger.error('Could not parse JSON string.')
 
-        if dta['state'] == 'SUCCESS':            
-            url = dta['result']['pdf']['result']['output']
+        if dta['state'] == 'SUCCESS':   
+            for _key in data["outputs"].iterkeys():
+                if 'state' in dta['result'][_key]:
+                    if dta['result'][_key]['state'] == 'SUCCESS':
+                        output_results[_key] = True
+                    elif dta['result'][_key]['state'] == 'FAILURE':
+                        output_results[_key] = False
 
-            sputnik.addMessageToChannel2(
-                kwargs['clientid'],
-                kwargs['sputnikid'],
-                "/booktype/book/%s/%s/" % (book.pk, kwargs['version']), {
-                    "command": "book_published",
-                    "state": dta['state'],
-                    "url": url
-                },
-                myself=True
-            )
-            break
+
+            if len(output_results) == len(data["outputs"].keys()):
+                def _x(_key):
+                    d = {}
+                    if 'result' in dta['result'][_key]:
+                        d = dta['result'][_key]['result']
+                    d['status'] = output_results[_key]
+                    return d
+
+                urls = {_key: _x(_key) for _key in output_results.iterkeys()}
+
+                _now = datetime.datetime.now()
+                
+                sputnik.addMessageToChannel2(
+                    kwargs['clientid'],
+                    kwargs['sputnikid'],
+                    "/booktype/book/%s/%s/" % (book.pk, kwargs['version']), {
+                        "command": "book_published",
+                        "state": 'SUCCESS',
+                        "username": kwargs["username"],
+                        "exported": _now.isoformat(),
+                        "urls": urls
+                    },
+                    myself=True
+                )
+                break
 
         if dta['state'] == 'FAILURE':
             sputnik.addMessageToChannel2(

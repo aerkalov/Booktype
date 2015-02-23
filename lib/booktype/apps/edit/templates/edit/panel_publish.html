@@ -1,19 +1,45 @@
 {% load i18n %}
 
-
+<script type="text/html" id="templatePublishHeader">
+ <h2>{% trans "Publish" %}</h2>
+</script>
+<!--
 <div class="template templatePublishHeader">
  <h2>{% trans "Publish" %}</h2>
 </div>
-
-<div class="template templatePublishContent">
-
+-->
+<script type="text/html" id="templatePublishContent">
  <div class="container">
-  <div class="row-xs-12">
+  <div class="row">
+    <div class="col-xs-6" id="publish-filter">
+    </div>
+
+    <div class="col-xs-1">
+    </div>    
+
+    <div class="col-xs-5">
+     <h4 class="border-bottom">{% trans "Info" %}</h4>
+
+    </div>
+   </div>
+
+    <div class="row-xs-12">
+     <h4 class="border-bottom">{% trans "Export history" %}</h4>
+       <div class="publish_history">
+       </div>
+    </div>
+ </div>
+</script>
+
+<script type="text/html" id="templatePublishFilter">
     <h4 class="border-bottom">{% trans "Formats" %}</h4>
       <form>
+       <div class="row">
+        <div class="col-xs-6">
+
         <div class="checkbox">
           <label>
-            <input name="bookpdf" type="checkbox"> {% trans "Book PDF" %}
+            <input name="mpdf" type="checkbox"> {% trans "Book PDF" %}
           </label><br/>
           <a href="#">{% trans "settings" %}</a>
         </div>
@@ -37,17 +63,66 @@
             <input name="mobi" type="checkbox"> {% trans "MOBI" %}
           </label><br/>
           <a href="#">{% trans "settings" %}</a>
+        </div>        
+
+        </div>
+        <div class="col-xs-6">
+          <div class="checkbox">
+            <label>
+              <input name="xhtml" type="checkbox"> {% trans "Book PDF (BookJS)" %} 
+            </label><br/>
+            <a href="#">{% trans "settings" %}</a>
+          </div>                
+
+          <div class="checkbox">
+            <label>
+              <input name="xhtml" type="checkbox"> {% trans "XHTML" %}
+            </label><br/>
+            <a href="#">{% trans "settings" %}</a>
+          </div>                
+        </div>
         </div>
 
         <button type="button" class="btn btn-default btn-publish">{% trans "PUBLISH" %}</button>
       </form>
-    </div>
 
-    <div class="row-xs-12">
-     <h4 class="border-bottom">{% trans "Publishing history" %}</h4>
-       <div class="publish_history">
+</script>
+
+<script type="text/html" id="templatePublishHistory">
+</script>
+
+<script type="text/html" id="templatePublishLine">
+   <div class="row">
+     <div class="col-xs-10">
+       <span style="font-size: 14px; margin-right: 10px;"><i class="icon-chevron-right"></i></span>
+       <%= name %> {% trans "by" %} <%= username %> <%= exported %>
+     </div>
+     <div class="col-xs-2">
+       <div class="btn-group">
+         <button class="btn btn-default btn-xs dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
+          {% trans "Action" %} <span class="caret"></span>
+         </button>
+         <ul class="dropdown-menu" role="menu">
+            <li><a href="#">{% trans "Remove export" %}</a></li>
+            <li><a href="#">{% trans "Comment" %}</a></li>
+            <li class="divider"></li>
+            <li><a href="#">{% trans "Publish" %}</a></li>          
+         </ul>
        </div>
-    </div>
- </div>
+     </div>
+   </div>
+   <div class="row">
+     <div class="col-xs-12">
+       <span style="margin-left: 20px;"> {% trans "Download:" %} </span>
+       <% _.each(formats, function (url, key) { %>
+          <span class="label label-success"><a target="_blank" style="color: white;" href="<%= url['output'] %>"><%= key %></a></span>&nbsp;&nbsp;
+       <% }); %>
 
-</div>
+     </div>
+   </div>
+
+</script>
+
+<script type="text/html" id="templatePublishProgress">
+  <div class="publishing-message box gray"><i class="icon-gears"></i>  {% trans "Exporting. Please wait." %} </div>
+</script>

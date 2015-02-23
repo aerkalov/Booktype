@@ -24,7 +24,6 @@ import lxml.html
 from lxml import etree
 
 import urllib2
-import requests
 
 import logging
 
@@ -90,6 +89,8 @@ class MPDFConverter(BaseConverter):
         self._run_renderer(html_path, pdf_path)
 
         os.rename(pdf_path, output_path)
+
+        return {"pages": 21, "size": os.path.getsize(output_path)}
 
 
     def _write_configuration(self, dc_metadata):
