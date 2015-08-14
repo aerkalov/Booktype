@@ -416,13 +416,13 @@ class MPDFConverter(BaseConverter):
         self.images[item.file_name] = file_name
 
     def _fix_columns(self, content):
-        """Removed broken endnotes from the content.
+        """Add mPDF tags for multi column support.
 
         :Args:
           - content: lxml node tree with the chapter content
 
         """
-        for column in content.xpath("//div[@class='bk-columns']"):
+        for column in content.xpath("//div[contains(@class, 'bk-columns')]"):
             column_count = column.get('data-column', '3')
             column_valign = column.get('data-valign', '')
             column_gap = column.get('data-gap', '5')
@@ -432,11 +432,14 @@ class MPDFConverter(BaseConverter):
                 'vAlign': column_valign,
                 'column-gap': column_gap
                 })
-            columns_end = etree.Element('columns', {'column-count': '1'})
 
             parent = column.getparent()
             parent.insert(parent.index(column), columns_start)
-            parent.insert(parent.index(column)+1, columns_end)
+
+            if 'bk-marker' not in column.get('class'):
+                columns_end = etree.Element('columns', {'column-count': '1'})            
+                parent.insert(parent.index(column)+1, columns_end)
+
             column.drop_tag()
 
         for column_break in content.xpath("//div[@class='bk-column-break']"):

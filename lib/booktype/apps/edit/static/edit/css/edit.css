@@ -508,9 +508,28 @@ div.contentHeader span.info-message {
 }
 
 #contenteditor .aloha-block-ColumnsBlock .aloha-editable {
-  height: 600px;
+  min-height: 200px;
   padding: 10px;
 }
+
+#contenteditor .aloha-block-ColumnsBlock.bk-marker .aloha-editable {
+  display: none;
+}
+
+#contenteditor .aloha-block-ColumnsBlock .bk-columns-marker {
+  display: none;
+}
+
+
+#contenteditor .aloha-block-ColumnsBlock.bk-marker .bk-columns-marker {
+  display: block;
+  padding: 2px;
+  color: white;
+  font-size: 10px;
+  border-radius: 2px;
+  background-color: red;
+}
+
 
 #contenteditor .aloha-block-ColumnsBlock .bk-columns-info { 
   background-color: red;
@@ -536,15 +555,10 @@ div.contentHeader span.info-message {
   display: block;
 }
 
-#contenteditor .aloha-block-ColumnsBlock .aloha-editable{
-   column-rule: 4px solid #red; 
- column-width: 33%;  
-  column-count: 3;
+#contenteditor .aloha-block-ColumnsBlock .aloha-editable {
+  column-rule: 4px solid #red; 
   column-gap: 20px
 
- -webkit-column-width: 33%; 
--webkit-column-count: 3; /* Chrome, Safari, Opera */
-    -moz-column-count: 3; /* Firefox */  
 
     -webkit-column-rule: 4px solid red; /* Chrome, Safari, Opera */
     -moz-column-rule: 4px solid red; /* Firefox */

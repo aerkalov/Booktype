@@ -317,7 +317,7 @@
           <h3>{% trans "Word count" %}</h3>
         </div>
         <div class="modal-body">
-          <form>
+          <form autocomplete="off">
 
           <div class="control-group">
             <label class="control-label" for="columnsNumber">{% trans "Number of columns" %}</label>
@@ -341,6 +341,14 @@
             <div class="controls">
               <input type="text" id="columnsGap" name="gap">
             </div>
+          </div>
+
+          <div class="checkbox">
+<!--            <label class="control-label" for="columnsStart2">{% trans "Column continues after the marker" %}</label>-->
+<!--            <div class="controls"> -->
+
+              <label><input type="checkbox" id="columnsStart" name="start"> {% trans "Column continues after the marker" %}</label>
+<!--            </div> -->
           </div>
 
           </form>
